@@ -8,15 +8,21 @@ from typing import Any
 import uvicorn
 from mcp.server.fastmcp import FastMCP
 from starlette.applications import Starlette
+from starlette.responses import JSONResponse
+from starlette.routing import Route
 
 from interpreter import DEFAULT_MAX_OUTPUT_BYTES, execute_code, execute_file, environment
 from models import PythonInterpreterError
 from packages import install_env_packages, install_packages as pip_install_packages
 from packages import list_installed_packages as pip_list_installed_packages
+from utils import log_startup
 
 
 DEFAULT_HOST = "0.0.0.0"
 DEFAULT_PORT = 5556
+_startup_packages_ready = False
+_startup_package_result: dict[str, Any] | None = None
+_startup_package_error: str | None = None
 
 mcp = FastMCP(
     "python-interpreter-docker",
@@ -129,7 +135,7 @@ def create_app() -> Starlette:
 
     return Starlette(
         debug=mcp.settings.debug,
-        routes=[*streamable_app.routes, *sse_app.routes],
+        routes=[Route("/health", health_check), *streamable_app.routes, *sse_app.routes],
         lifespan=lifespan,
     )
 
@@ -141,8 +147,45 @@ async def _tool_call(operation: Awaitable[dict[str, Any]]) -> dict[str, Any]:
         raise ValueError(str(exc)) from exc
 
 
+async def health_check(request) -> JSONResponse:
+    if not _startup_packages_ready:
+        return JSONResponse(
+            {
+                "status": "starting",
+                "packages_ready": False,
+                "error": _startup_package_error,
+            },
+            status_code=503,
+        )
+
+    package_count = len((_startup_package_result or {}).get("packages", []))
+    return JSONResponse(
+        {
+            "status": "ok",
+            "packages_ready": True,
+            "startup_package_count": package_count,
+        }
+    )
+
+
+def install_startup_packages() -> None:
+    global _startup_package_error, _startup_package_result, _startup_packages_ready
+
+    _startup_packages_ready = False
+    _startup_package_error = None
+    try:
+        _startup_package_result = install_env_packages()
+    except Exception as exc:
+        _startup_package_result = None
+        _startup_package_error = str(exc)
+        log_startup(f"Exiting because startup package installation failed: {exc}")
+        raise SystemExit(1) from exc
+
+    _startup_packages_ready = True
+
+
 def run_http_server() -> None:
-    install_env_packages()
+    install_startup_packages()
     uvicorn.run(
         create_app(),
         host=mcp.settings.host,
@@ -154,7 +197,7 @@ def run_http_server() -> None:
 def main() -> None:
     transport = os.getenv("MCP_TRANSPORT", "http-sse")
     if transport == "stdio":
-        install_env_packages()
+        install_startup_packages()
         mcp.run(transport="stdio")
         return
     if transport not in {"http-sse", "http", "streamable-http"}:

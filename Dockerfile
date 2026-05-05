@@ -17,4 +17,7 @@ RUN python -m pip install --no-cache-dir --upgrade pip \
 
 EXPOSE 5556
 
+HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
+    CMD curl -fsS http://127.0.0.1:5556/health || exit 1
+
 CMD ["mcp-python-interpreter-docker"]

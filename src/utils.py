@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import sys
 
 from models import InvalidInputError
 
@@ -30,3 +31,7 @@ def validate_positive_float(value: float | str, name: str) -> float:
 
 def env_positive_float(name: str, default: float) -> float:
     return validate_positive_float(os.getenv(name, str(default)), name.lower())
+
+
+def log_startup(message: str) -> None:
+    print(f"[startup] {message}", file=sys.stderr, flush=True)

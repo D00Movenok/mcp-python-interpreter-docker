@@ -42,6 +42,9 @@ Endpoints:
 
 - Streamable HTTP: `http://127.0.0.1:5556/mcp`
 - SSE: `http://127.0.0.1:5556/sse`
+- Healthcheck: `http://127.0.0.1:5556/health`
+
+The container installs `PYTHON_PACKAGES` before starting the MCP HTTP/SSE service. Startup progress is written to stderr. If startup package installation fails, the process exits and the service never becomes healthy.
 
 ### Local
 

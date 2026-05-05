@@ -9,7 +9,8 @@ import sys
 from typing import Any
 
 from models import InvalidInputError, PackageInstallError
-from utils import env_positive_float, validate_positive_float, validate_positive_int
+from utils import env_positive_float, log_startup, validate_positive_float
+from utils import validate_positive_int
 
 
 _install_lock = asyncio.Lock()
@@ -25,8 +26,18 @@ def packages_from_env() -> list[str]:
 def install_env_packages() -> dict[str, Any]:
     packages = packages_from_env()
     if not packages:
+        log_startup("PYTHON_PACKAGES is empty; skipping startup package install")
         return {"installed": False, "packages": [], "stdout": "", "stderr": ""}
-    return _install_packages_sync(packages, timeout_seconds=_env_install_timeout())
+
+    log_startup(f"Installing {len(packages)} startup package(s) from PYTHON_PACKAGES")
+    try:
+        result = _install_packages_sync(packages, timeout_seconds=_env_install_timeout())
+    except Exception:
+        log_startup("Startup package installation failed")
+        raise
+
+    log_startup("Startup package installation completed")
+    return result
 
 
 async def install_packages(
