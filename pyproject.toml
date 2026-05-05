@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mcp-python-interpreter-docker"
+version = "0.1.0"
+description = "MCP server for running Python inside a Docker container"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [
+    { name = "Georgii Gennadev" }
+]
+dependencies = [
+    "mcp>=1.12.0",
+    "uvicorn>=0.30.0"
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0"
+]
+
+[project.scripts]
+mcp-python-interpreter-docker = "server:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+py-modules = ["interpreter", "models", "packages", "server", "utils"]
+
+[tool.pytest.ini_options]
+addopts = "-q"
+testpaths = ["tests"]
+pythonpath = ["src"]
