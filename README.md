@@ -12,10 +12,10 @@ MCP server for running Python inside a Docker container.
 
 ## Tools
 
-- `execute_python(code, timeout_seconds=None, max_output_bytes=20000)`
+- `execute_python(code, timeout_seconds=None, max_output_bytes=200000)`
   - Runs Python code in a fresh interpreter process.
   - Returns exit code, timeout flag, duration, stdout, stderr, and truncation flags.
-- `execute_python_file(path, args=None, timeout_seconds=None, max_output_bytes=20000)`
+- `execute_python_file(path, args=None, timeout_seconds=None, max_output_bytes=200000)`
   - Runs a Python file in a fresh interpreter process.
   - Passes optional command-line arguments to the file.
   - Returns exit code, timeout flag, duration, stdout, stderr, and truncation flags.
@@ -35,8 +35,17 @@ Each Python execution starts a new interpreter. Multiple executions can run conc
 ```bash
 docker run --rm -p 5556:5556 \
   -e PYTHON_PACKAGES="numpy pandas requests" \
-  ghcr.io/d00movenok/mcp-python-interpreter-docker:latest
+  ghcr.io/d00movenok/mcp-python-interpreter-docker:py-latest
 ```
+
+SageMath image:
+
+```bash
+docker run --rm -p 5556:5556 \
+  ghcr.io/d00movenok/mcp-python-interpreter-docker:sage-latest
+```
+
+The `latest` tag is kept as an alias for the pure Python image. Use `py-latest` or `sage-latest` when you want the variant to be explicit.
 
 Endpoints:
 

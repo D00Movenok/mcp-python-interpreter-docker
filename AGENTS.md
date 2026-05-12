@@ -14,10 +14,12 @@ The server is intentionally not sandboxed. Do not add sandboxing, code restricti
 - `src/interpreter.py`: fresh-process Python execution helpers.
 - `src/packages.py`: environment package install, runtime pip install, and package listing.
 - `src/models.py`: project exception types.
+- `src/utils.py`: shared validation and startup logging helpers.
 - `tests/test_interpreter.py`: interpreter unit tests.
 - `tests/test_packages.py`: package helper tests.
 - `tests/test_mcp_live.py`: MCP stdio smoke test.
-- `Dockerfile`: container image.
+- `Dockerfile`: pure Python container image.
+- `Dockerfile.sage`: SageMath container image that runs the server under Sage Python.
 - `.github/workflows/docker-publish.yml`: test, build, and GHCR publish workflow.
 - `README.md`: user-facing setup and tool documentation.
 - `pyproject.toml`: package metadata and dependencies.
@@ -51,7 +53,8 @@ Avoid installing into the system Python environment.
 - Package installation may be serialized to avoid concurrent pip mutations.
 - Default Docker port is `5556`.
 - HTTP endpoint is `/mcp` and SSE endpoint is `/sse`.
-- Docker image is published to `ghcr.io/d00movenok/mcp-python-interpreter-docker` on every push to `main`.
+- Docker images are published to `ghcr.io/d00movenok/mcp-python-interpreter-docker` on every push to `main`.
+- Pure Python image tags include `latest` and `py-latest`; SageMath image tags include `sage-latest`.
 
 ## Testing Expectations
 
